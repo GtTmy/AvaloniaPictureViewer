@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace Avalonia2
+namespace AvaloniaPictureViewer
 {
     public class PictureSelecter
     {
@@ -22,6 +22,8 @@ namespace Avalonia2
         }
 
         public int CurrentIndex { get; set; } = 0;
+
+        public string PageNumForUser => $"{CurrentIndex + 1} / {Pictures.Count()}";
 
         public string CurrentPicture => Pictures[CurrentIndex];
 

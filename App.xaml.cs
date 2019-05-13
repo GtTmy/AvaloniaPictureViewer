@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Markup.Xaml;
 
-namespace Avalonia2
+namespace AvaloniaPictureViewer
 {
     public class App : Application
     {

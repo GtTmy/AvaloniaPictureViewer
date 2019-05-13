@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace Avalonia2
+namespace AvaloniaPictureViewer
 {
     public class MainWindow : Window
     {

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Text;
 
-namespace Avalonia2
+namespace AvaloniaPictureViewer
 {
     public class ViewModel: BindableBase
     {
@@ -20,7 +20,7 @@ namespace Avalonia2
         public ViewModel()
         {
             PictureSelecter = new PictureSelecter(System.IO.Path.Combine(".", "image"));
-            Observable.Merge(
+            var buttonClickedSource = Observable.Merge(
                 NextPageCommand.Select(_ =>
                 {
                     PictureSelecter.MoveNext();
@@ -31,13 +31,18 @@ namespace Avalonia2
                     PictureSelecter.MovePrev();
                     return PictureSelecter.CurrentPicture;
                 }))
-                .Subscribe(x => 
-                {
-                    PicturePath = x;
-                    Title = x;
-                });
-            PicturePath = PictureSelecter.CurrentPicture;
-            Title = "AvaloniaUIApps";
+                .Publish();
+
+            PicturePath = buttonClickedSource
+                .ToReadOnlyReactiveProperty(PictureSelecter.CurrentPicture);
+
+            PageNum =
+                buttonClickedSource
+                .Select(_ => PictureSelecter.PageNumForUser)
+                .ToReadOnlyReactiveProperty(PictureSelecter.PageNumForUser);
+            buttonClickedSource.Connect();
+
+            Title = "AvaloniaUIApps On " + System.Runtime.InteropServices.RuntimeInformation.OSDescription;
         }
 
         PictureSelecter PictureSelecter { get; }
@@ -45,14 +50,8 @@ namespace Avalonia2
         public ReactiveCommand NextPageCommand { get; } = new ReactiveCommand();
         public ReactiveCommand PrevPageCommand { get; } = new ReactiveCommand();
 
-        // public ReadOnlyReactiveProperty<string> PicturePath { get; }
+        public ReadOnlyReactiveProperty<string> PicturePath { get; }
 
-        private string _PicturePath;
-        public string PicturePath
-        {
-            get { return _PicturePath; }
-            set { SetProperty(ref _PicturePath, value); }
-        }
-
+        public ReadOnlyReactiveProperty<string> PageNum { get; }
     }
 }
