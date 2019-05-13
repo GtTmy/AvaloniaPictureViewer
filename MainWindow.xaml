@@ -4,16 +4,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Avalonia2.MainWindow"
-        Title="Avalonia Image Viewer">
+        Title="{Binding Title}">
     <Grid>
       <Grid.RowDefinitions>
         <RowDefinition Height="9*"/>
         <RowDefinition Height="1*"/>
       </Grid.RowDefinitions>
       <Grid Grid.Row="0">
-        <Viewbox Stretch="Uniform">
-          <Image Source="C:\Users\tmygt\Downloads\3695877524_b3b7cdc40a_o.jpg"/>
-        </Viewbox>
+        <Image Source="{Binding PicturePath}" Stretch="Uniform"/>
       </Grid>
       <Grid Grid.Row="1">
         <Grid.ColumnDefinitions>

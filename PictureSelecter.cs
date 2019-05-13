@@ -32,7 +32,7 @@ namespace Avalonia2
 
         public void MovePrev()
         {
-
+            CurrentIndex = (CurrentIndex > 0) ? CurrentIndex - 1 : Pictures.Count() - 1;
         }
 
     }

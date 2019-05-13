@@ -3,32 +3,56 @@ using Prism.Mvvm;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Text;
 
 namespace Avalonia2
 {
     public class ViewModel: BindableBase
     {
-        private DelegateCommand _NextPageCommand;
-        public DelegateCommand NextPageCommand =>
-            _NextPageCommand ?? (_NextPageCommand = new DelegateCommand(NextPage));
-
-        void NextPage()
+        private string _Title;
+        public string Title
         {
-            System.Diagnostics.Debug.WriteLine("NextPage");
+            get { return _Title; }
+            set { SetProperty(ref _Title, value); }
         }
 
-        private DelegateCommand _PrevPageCommand;
-        public DelegateCommand PrevPageCommand =>
-            _PrevPageCommand ?? (_PrevPageCommand = new DelegateCommand(PrevPage));
-
-        void PrevPage()
+        public ViewModel()
         {
-            System.Diagnostics.Debug.WriteLine("PrevPage");
+            PictureSelecter = new PictureSelecter(System.IO.Path.Combine(".", "image"));
+            Observable.Merge(
+                NextPageCommand.Select(_ =>
+                {
+                    PictureSelecter.MoveNext();
+                    return PictureSelecter.CurrentPicture;
+                }),
+                PrevPageCommand.Select(_ =>
+                {
+                    PictureSelecter.MovePrev();
+                    return PictureSelecter.CurrentPicture;
+                }))
+                .Subscribe(x => 
+                {
+                    PicturePath = x;
+                    Title = x;
+                });
+            PicturePath = PictureSelecter.CurrentPicture;
+            Title = "AvaloniaUIApps";
         }
 
-        public ReactiveProperty<string> Text1 { get; } = new ReactiveProperty<string>("Hello!");
-        public ReactiveProperty<string> Text2 { get; } = new ReactiveProperty<string>("Avalonia!");
+        PictureSelecter PictureSelecter { get; }
+
+        public ReactiveCommand NextPageCommand { get; } = new ReactiveCommand();
+        public ReactiveCommand PrevPageCommand { get; } = new ReactiveCommand();
+
+        // public ReadOnlyReactiveProperty<string> PicturePath { get; }
+
+        private string _PicturePath;
+        public string PicturePath
+        {
+            get { return _PicturePath; }
+            set { SetProperty(ref _PicturePath, value); }
+        }
 
     }
 }
