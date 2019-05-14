@@ -5,6 +5,7 @@
         xmlns:apv="clr-namespace:AvaloniaPictureViewer"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaPictureViewer.MainWindow"
+        FontFamily="Noto Sans CJK JP, Segoe UI, Lucida Grande, Ubuntu"
         Title="{Binding Title}">
   <Window.Resources>
     <apv:PathToIBitmapConverter x:Key="PathToIBitMapConverter"/>
