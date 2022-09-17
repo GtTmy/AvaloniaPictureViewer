@@ -13,13 +13,7 @@ namespace AvaloniaPictureViewer
 {
     public class ViewModel: BindableBase
     {
-        private string _Title;
-        public string Title
-        {
-            get { return _Title; }
-            set { SetProperty(ref _Title, value); }
-        }
-
+        public ReadOnlyReactiveProperty<string> Title { get; }
         public void SetFilename(string filename)
         {
             PictureSelecter = new PictureSelecter(filename);
@@ -29,7 +23,7 @@ namespace AvaloniaPictureViewer
         public Subject<string> UpdatePic { get; } = new Subject<string>();
         public ViewModel()
         {   
-            Title = "AvaloniaUIApps On " + System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+            //Title = "AvaloniaUIApps On " + System.Runtime.InteropServices.RuntimeInformation.OSDescription;
 
             var buttonClickedSource = Observable.Merge(
                 NextPageCommand.Select(_ =>
@@ -53,15 +47,19 @@ namespace AvaloniaPictureViewer
                 .Select(_ => PictureSelecter.PageNumForUser)
                 .ToReadOnlyReactiveProperty();
             buttonClickedSource.Connect();
+
+            Title = buttonClickedSource
+                .Select(path => $"{PictureSelecter.PageNumForUser} - {path}")
+                .ToReadOnlyReactiveProperty();
         }
 
         PictureSelecter PictureSelecter { get; set;}
 
-        public ReactiveCommand NextPageCommand { get; private set; } = new ReactiveCommand();
-        public ReactiveCommand PrevPageCommand { get; private set; } = new ReactiveCommand();
+        public ReactiveCommand NextPageCommand { get; } = new ReactiveCommand();
+        public ReactiveCommand PrevPageCommand { get; } = new ReactiveCommand();
 
-        public ReadOnlyReactiveProperty<string> PicturePath { get; private set; }
+        public ReadOnlyReactiveProperty<string> PicturePath { get; }
 
-        public ReadOnlyReactiveProperty<string> PageNum { get; private set; }
+        public ReadOnlyReactiveProperty<string> PageNum { get; }
     }
 }
