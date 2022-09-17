@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Text;
+using Avalonia.Controls;
+using System.IO;
+using System.Reactive.Subjects;
 
 namespace AvaloniaPictureViewer
 {
@@ -17,9 +20,18 @@ namespace AvaloniaPictureViewer
             set { SetProperty(ref _Title, value); }
         }
 
-        public ViewModel()
+        public void SetFilename(string filename)
         {
-            PictureSelecter = new PictureSelecter(System.IO.Path.Combine(".", "image"));
+            PictureSelecter = new PictureSelecter(Path.GetDirectoryName(filename));
+            PictureSelecter.SelectPhoto(filename);
+            UpdatePic.OnNext(PictureSelecter.CurrentPicture);
+        }
+
+        public Subject<string> UpdatePic { get; } = new Subject<string>();
+        public ViewModel()
+        {   
+            Title = "AvaloniaUIApps On " + System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+
             var buttonClickedSource = Observable.Merge(
                 NextPageCommand.Select(_ =>
                 {
@@ -30,28 +42,27 @@ namespace AvaloniaPictureViewer
                 {
                     PictureSelecter.MovePrev();
                     return PictureSelecter.CurrentPicture;
-                }))
-                .Publish();
+                }),
+                UpdatePic
+            ).Publish();
 
             PicturePath = buttonClickedSource
-                .ToReadOnlyReactiveProperty(PictureSelecter.CurrentPicture);
+                .ToReadOnlyReactiveProperty();
 
             PageNum =
                 buttonClickedSource
                 .Select(_ => PictureSelecter.PageNumForUser)
-                .ToReadOnlyReactiveProperty(PictureSelecter.PageNumForUser);
+                .ToReadOnlyReactiveProperty();
             buttonClickedSource.Connect();
-
-            Title = "AvaloniaUIApps On " + System.Runtime.InteropServices.RuntimeInformation.OSDescription;
         }
 
-        PictureSelecter PictureSelecter { get; }
+        PictureSelecter PictureSelecter { get; set;}
 
-        public ReactiveCommand NextPageCommand { get; } = new ReactiveCommand();
-        public ReactiveCommand PrevPageCommand { get; } = new ReactiveCommand();
+        public ReactiveCommand NextPageCommand { get; private set; } = new ReactiveCommand();
+        public ReactiveCommand PrevPageCommand { get; private set; } = new ReactiveCommand();
 
-        public ReadOnlyReactiveProperty<string> PicturePath { get; }
+        public ReadOnlyReactiveProperty<string> PicturePath { get; private set; }
 
-        public ReadOnlyReactiveProperty<string> PageNum { get; }
+        public ReadOnlyReactiveProperty<string> PageNum { get; private set; }
     }
 }

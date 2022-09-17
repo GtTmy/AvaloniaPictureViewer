@@ -21,6 +21,13 @@ namespace AvaloniaPictureViewer
                 .ToList();
         }
 
+        public void SelectPhoto(string filename)
+        {
+            var filenameBody = System.IO.Path.GetFileName(filename);
+            var index = Pictures.Select((path, index) => new {Filename = System.IO.Path.GetFileName(path), Index = index}).First(x => x.Filename == filenameBody).Index;
+            CurrentIndex = index;
+        }
+
         public int CurrentIndex { get; set; } = 0;
 
         public string PageNumForUser => $"{CurrentIndex + 1} / {Pictures.Count()}";
