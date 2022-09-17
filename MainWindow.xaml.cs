@@ -27,6 +27,12 @@ namespace AvaloniaPictureViewer
                     }
                 };
                 var files = await d.ShowAsync(this);
+                if (!files.Any())
+                {
+                    this.Close();
+                    return;
+                }
+                
                 var vm = DataContext as ViewModel;
                 vm.SetFilename(files.Single());
             };

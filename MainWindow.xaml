@@ -16,7 +16,7 @@
   </Window.KeyBindings>
   <Grid>
     <Grid.RowDefinitions>
-      <RowDefinition Height="9*"/>
+      <RowDefinition Height="11*"/>
       <RowDefinition Height="1*"/>
     </Grid.RowDefinitions>
     <Grid Grid.Row="0">
