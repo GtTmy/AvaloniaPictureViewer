@@ -3,14 +3,11 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0</TargetFrameworks>
   </PropertyGroup>
-  <ItemGroup>
+<!--  <ItemGroup>
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
-    <AvaloniaResource Include="**\*.xaml">
-      <SubType>Designer</SubType>
-    </AvaloniaResource>
-  </ItemGroup>
+  </ItemGroup>-->
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.18" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
@@ -18,11 +15,15 @@
     <PackageReference Include="Prism.Core" Version="8.1.97" />
     <PackageReference Include="ReactiveProperty" Version="8.1.2" />
   </ItemGroup>
-  <ItemGroup>
+<!--  <ItemGroup>
     <AvaloniaResource Remove="App.xaml" />
-  </ItemGroup>
+    <AvaloniaResource Remove="MainWindow.xaml" />
+  </ItemGroup>-->
   <ItemGroup>
     <AvaloniaXaml Include="App.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaXaml>
+    <AvaloniaXaml Include="MainWindow.xaml">
       <SubType>Designer</SubType>
     </AvaloniaXaml>
   </ItemGroup>
