@@ -10,6 +10,10 @@
   <Window.Resources>
     <apv:PathToIBitmapConverter x:Key="PathToIBitMapConverter"/>
   </Window.Resources>
+  <Window.KeyBindings>
+    <KeyBinding Command="{Binding NextPageCommand}" Gesture="Right"/>
+    <KeyBinding Command="{Binding PrevPageCommand}" Gesture="Left"/>
+  </Window.KeyBindings>
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="9*"/>
