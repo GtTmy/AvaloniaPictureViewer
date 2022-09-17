@@ -19,10 +19,7 @@ namespace AvaloniaPictureViewer
                     {
                         new FileDialogFilter()
                         {
-                            Extensions = new List<string>
-                            {
-                                "jpg", "JPG", "jpeg", "JPEG", "png", "PNG"
-                            }
+                            Extensions = PictureSelecter.SupportedExtensions,
                         }
                     }
                 };

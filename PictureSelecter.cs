@@ -10,11 +10,18 @@ namespace AvaloniaPictureViewer
     {
         public string DirName { get; }
         public IList<string> Pictures { get; }
+
+        public static List<string> SupportedExtensions { get; } = new List<string>
+        {
+            "jpg", "JPG", "jpeg", "JPEG", "png", "PNG"
+        };
+
         public PictureSelecter(string filename)
         {
 
             DirName = System.IO.Path.GetDirectoryName(filename);
-            Pictures = System.IO.Directory.EnumerateFiles(DirName, "*.jpg", System.IO.SearchOption.TopDirectoryOnly)
+            Pictures = System.IO.Directory.EnumerateFiles(DirName)
+                .Where(x => SupportedExtensions.Select(x => $".{x}").Contains(System.IO.Path.GetExtension(x)))
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase.WithNaturalSort())
                 .ToList();
             var filenameBody = System.IO.Path.GetFileName(filename);
