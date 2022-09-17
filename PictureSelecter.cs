@@ -10,25 +10,19 @@ namespace AvaloniaPictureViewer
     {
         public string DirName { get; }
         public IList<string> Pictures { get; }
-        public PictureSelecter(string dirName)
+        public PictureSelecter(string filename)
         {
-            if (!System.IO.Directory.Exists(dirName))
-                throw new Exception("フォルダがありません");
-            DirName = dirName;
 
+            DirName = System.IO.Path.GetDirectoryName(filename);
             Pictures = System.IO.Directory.EnumerateFiles(DirName, "*.jpg", System.IO.SearchOption.TopDirectoryOnly)
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase.WithNaturalSort())
                 .ToList();
-        }
-
-        public void SelectPhoto(string filename)
-        {
             var filenameBody = System.IO.Path.GetFileName(filename);
-            var index = Pictures.Select((path, index) => new {Filename = System.IO.Path.GetFileName(path), Index = index}).First(x => x.Filename == filenameBody).Index;
+            var index = Pictures.Select((path, index) => new { Filename = System.IO.Path.GetFileName(path), Index = index }).First(x => x.Filename == filenameBody).Index;
             CurrentIndex = index;
         }
 
-        public int CurrentIndex { get; set; } = 0;
+        public int CurrentIndex { get; private set; } = 0;
 
         public string PageNumForUser => $"{CurrentIndex + 1} / {Pictures.Count()}";
 

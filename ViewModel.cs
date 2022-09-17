@@ -22,8 +22,7 @@ namespace AvaloniaPictureViewer
 
         public void SetFilename(string filename)
         {
-            PictureSelecter = new PictureSelecter(Path.GetDirectoryName(filename));
-            PictureSelecter.SelectPhoto(filename);
+            PictureSelecter = new PictureSelecter(filename);
             UpdatePic.OnNext(PictureSelecter.CurrentPicture);
         }
 
