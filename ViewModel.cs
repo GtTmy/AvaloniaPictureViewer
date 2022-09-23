@@ -53,7 +53,19 @@ namespace AvaloniaPictureViewer
                 .ToReadOnlyReactiveProperty();
         }
 
-        PictureSelecter PictureSelecter { get; set;}
+        public void SetArgs(string[] args)
+        {
+            if ((args == null) || (args.Length < 1)) return;
+            if (System.IO.File.Exists(args[0]) && PictureSelecter.SupportedExtensions.Contains(System.IO.Path.GetExtension(args[0]).Substring(1)))
+            {
+                var fullpath = System.IO.Path.GetFullPath(args[0]);
+                SetFilename(fullpath);
+            }
+        }
+
+        PictureSelecter PictureSelecter { get; set; } = default;
+
+        public bool IsPictureSelected() => PictureSelecter != null;
 
         public ReactiveCommand NextPageCommand { get; } = new ReactiveCommand();
         public ReactiveCommand PrevPageCommand { get; } = new ReactiveCommand();

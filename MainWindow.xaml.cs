@@ -13,25 +13,28 @@ namespace AvaloniaPictureViewer
             InitializeComponent();
             Opened += async (o, e) => 
             {
-                var d = new OpenFileDialog()
-                {
-                    Filters = new List<FileDialogFilter>
-                    {
-                        new FileDialogFilter()
-                        {
-                            Extensions = PictureSelecter.SupportedExtensions,
-                        }
-                    }
-                };
-                var files = await d.ShowAsync(this);
-                if (!files.Any())
-                {
-                    this.Close();
-                    return;
-                }
-                
                 var vm = DataContext as ViewModel;
-                vm.SetFilename(files.Single());
+                if (!vm.IsPictureSelected())
+                {
+                    var d = new OpenFileDialog()
+                    {
+                        Filters = new List<FileDialogFilter>
+                        {
+                            new FileDialogFilter()
+                            {
+                                Extensions = PictureSelecter.SupportedExtensions,
+                            }
+                        }
+                    };
+                    var files = await d.ShowAsync(this);
+                    if (!files.Any())
+                    {
+                        this.Close();
+                        return;
+                    }
+                    vm.SetFilename(files.Single());
+                }
+
             };
         }
 

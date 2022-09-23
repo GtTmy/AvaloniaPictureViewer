@@ -15,9 +15,15 @@ namespace AvaloniaPictureViewer
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                var vm = new ViewModel();
                 desktop.MainWindow = new MainWindow()
                 {
-                    DataContext = new ViewModel(),
+                    DataContext = vm,
+                };
+
+                desktop.Startup += (o, e) =>
+                {
+                    vm.SetArgs(e.Args);
                 };
             }
 
