@@ -16,8 +16,13 @@ namespace AvaloniaPictureViewer
         public ReadOnlyReactiveProperty<string> Title { get; }
         public void SetFilename(string filename)
         {
-            PictureSelecter = new PictureSelecter(filename);
-            UpdatePic.OnNext(PictureSelecter.CurrentPicture);
+            if (System.IO.File.Exists(filename) &&
+                PictureSelecter.SupportedExtensions.Contains(System.IO.Path.GetExtension(filename).Substring(1)))
+            {
+                var fullpath = System.IO.Path.GetFullPath(filename);
+                PictureSelecter = new PictureSelecter(filename);
+                UpdatePic.OnNext(PictureSelecter.CurrentPicture);
+            }
         }
 
         public Subject<string> UpdatePic { get; } = new Subject<string>();
@@ -51,16 +56,6 @@ namespace AvaloniaPictureViewer
             Title = buttonClickedSource
                 .Select(path => $"{PictureSelecter.PageNumForUser} - {path}")
                 .ToReadOnlyReactiveProperty();
-        }
-
-        public void SetArgs(string[] args)
-        {
-            if ((args == null) || (args.Length < 1)) return;
-            if (System.IO.File.Exists(args[0]) && PictureSelecter.SupportedExtensions.Contains(System.IO.Path.GetExtension(args[0]).Substring(1)))
-            {
-                var fullpath = System.IO.Path.GetFullPath(args[0]);
-                SetFilename(fullpath);
-            }
         }
 
         PictureSelecter PictureSelecter { get; set; } = default;

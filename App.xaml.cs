@@ -23,7 +23,8 @@ namespace AvaloniaPictureViewer
 
                 desktop.Startup += (o, e) =>
                 {
-                    vm.SetArgs(e.Args);
+                    if ((e.Args == null) || (e.Args.Length < 1)) return;
+                    vm.SetFilename(e.Args[0]);
                 };
             }
 
