@@ -1,5 +1,4 @@
-﻿using Prism.Commands;
-using Prism.Mvvm;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,7 @@ using System.Reactive.Subjects;
 
 namespace AvaloniaPictureViewer
 {
-    public class ViewModel: BindableBase
+    public class ViewModel: ObservableObject
     {
         public ReadOnlyReactiveProperty<string> Title { get; }
         public void SetFilename(string filename)

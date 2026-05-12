@@ -16,8 +16,8 @@
 
 - [Avalonia](https://github.com/AvaloniaUI/Avalonia/blob/master/licence.md)
   - Copyright (c) 2014 Steven Kirk
-- [Prism](https://github.com/PrismLibrary/Prism/blob/master/LICENSE)
-  - Copyright (c) .NET Foundation
+- [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet/blob/main/License.md)
+  - Copyright (c) .NET Foundation and Contributors
 - [NaturalSort.Extension](https://raw.githubusercontent.com/tompazourek/NaturalSort.Extension/master/LICENSE)
   - Copyright (c) 2017 Tomáš Pažourek
 - [ReactiveProperty](https://github.com/runceel/ReactiveProperty/blob/master/LICENSE.txt)
