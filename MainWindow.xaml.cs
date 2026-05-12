@@ -1,12 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using System.Collections.Generic;
+using Avalonia.Platform.Storage;
 using System.Linq;
 
 namespace AvaloniaPictureViewer
 {
-    public class MainWindow : Window
+    public partial class MainWindow : Window
     {
         public MainWindow()
         {
@@ -16,23 +16,29 @@ namespace AvaloniaPictureViewer
                 var vm = DataContext as ViewModel;
                 if (!vm.IsPictureSelected())
                 {
-                    var d = new OpenFileDialog()
+                    var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
                     {
-                        Filters = new List<FileDialogFilter>
+                        FileTypeFilter = new[]
                         {
-                            new FileDialogFilter()
+                            new FilePickerFileType("Pictures")
                             {
-                                Extensions = PictureSelecter.SupportedExtensions,
+                                Patterns = PictureSelecter.SupportedExtensions.Select(x => $"*.{x}").ToArray(),
                             }
-                        }
-                    };
-                    var files = await d.ShowAsync(this);
+                        },
+                        AllowMultiple = false,
+                    });
                     if (!files.Any())
                     {
                         this.Close();
                         return;
                     }
-                    vm.SetFilename(files.Single());
+                    var path = files.Single().TryGetLocalPath();
+                    if (path == null)
+                    {
+                        this.Close();
+                        return;
+                    }
+                    vm.SetFilename(path);
                 }
 
             };
