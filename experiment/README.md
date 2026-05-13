@@ -26,11 +26,27 @@ JSON output:
 
 ```json
 {
-  "image": "/absolute/path/to/photo.jpg",
+  "input": "/absolute/path/to/photo.jpg",
   "model": "shunk031/aesthetics-predictor-v1-vit-large-patch14",
-  "score": 6.42,
-  "device": "mps"
+  "count": 1,
+  "error_count": 0,
+  "results": [
+    {
+      "file_name": "photo.jpg",
+      "image": "/absolute/path/to/photo.jpg",
+      "model": "shunk031/aesthetics-predictor-v1-vit-large-patch14",
+      "score": 6.42,
+      "device": "mps"
+    }
+  ],
+  "errors": []
 }
+```
+
+Score every supported image under a directory:
+
+```bash
+uv run score-photo --output generated/photo-scores.json "../image"
 ```
 
 Use the local cache only:
