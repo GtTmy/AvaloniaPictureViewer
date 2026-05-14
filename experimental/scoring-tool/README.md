@@ -61,6 +61,46 @@ Force CPU:
 uv run score-photo --device cpu "../../image/example.jpg"
 ```
 
+## Worker mode
+
+For GUI integration, keep the scorer process alive so the model is loaded only
+once:
+
+```bash
+uv run score-photo --worker --local-files-only
+```
+
+The worker reads JSON Lines from stdin and writes JSON Lines to stdout. It emits
+a ready message after the model has loaded:
+
+```json
+{"type":"ready","ok":true,"model":"shunk031/aesthetics-predictor-v1-vit-large-patch14","device":"mps"}
+```
+
+Score one image:
+
+```json
+{"id":"current-photo","type":"score","image":"/absolute/path/to/photo.jpg"}
+```
+
+Successful response:
+
+```json
+{"ok":true,"id":"current-photo","file_name":"photo.jpg","image":"/absolute/path/to/photo.jpg","model":"shunk031/aesthetics-predictor-v1-vit-large-patch14","score":6.42,"device":"mps"}
+```
+
+Error response:
+
+```json
+{"ok":false,"id":"current-photo","error":"Image file not found: /absolute/path/to/photo.jpg"}
+```
+
+Shutdown request:
+
+```json
+{"type":"shutdown"}
+```
+
 ## Notes
 
 - The score is an estimate of broad visual preference, not an objective

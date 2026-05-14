@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import TextIO
 from pathlib import Path
 from typing import Any
 
@@ -102,6 +103,119 @@ class AestheticScorer:
         }
 
 
+def _write_json_line(stream: TextIO, payload: dict[str, Any]) -> None:
+    print(json.dumps(payload, ensure_ascii=False), file=stream, flush=True)
+
+
+def _worker_response(
+    request: dict[str, Any],
+    *,
+    ok: bool,
+    payload: dict[str, Any] | None = None,
+    error: str | None = None,
+) -> dict[str, Any]:
+    response: dict[str, Any] = {"ok": ok}
+    if "id" in request:
+        response["id"] = request["id"]
+    if payload is not None:
+        response.update(payload)
+    if error is not None:
+        response["error"] = error
+    return response
+
+
+def run_worker(
+    *,
+    model_id: str = DEFAULT_MODEL_ID,
+    requested_device: str = "auto",
+    local_files_only: bool = False,
+    input_stream: TextIO = sys.stdin,
+    output_stream: TextIO = sys.stdout,
+) -> int:
+    scorer = AestheticScorer(
+        model_id=model_id,
+        requested_device=requested_device,
+        local_files_only=local_files_only,
+    )
+    _write_json_line(
+        output_stream,
+        {
+            "type": "ready",
+            "ok": True,
+            "model": model_id,
+            "device": str(scorer.device),
+        },
+    )
+
+    for line in input_stream:
+        line = line.strip()
+        if not line:
+            continue
+
+        try:
+            request = json.loads(line)
+        except json.JSONDecodeError as exc:
+            _write_json_line(
+                output_stream,
+                {"ok": False, "error": f"Invalid JSON: {exc.msg}"},
+            )
+            continue
+
+        if not isinstance(request, dict):
+            _write_json_line(
+                output_stream,
+                {"ok": False, "error": "Request must be a JSON object."},
+            )
+            continue
+
+        request_type = request.get("type", "score")
+        if request_type == "shutdown":
+            _write_json_line(
+                output_stream,
+                _worker_response(request, ok=True, payload={"type": "shutdown"}),
+            )
+            return 0
+
+        if request_type != "score":
+            _write_json_line(
+                output_stream,
+                _worker_response(
+                    request,
+                    ok=False,
+                    error=f"Unsupported request type: {request_type}",
+                ),
+            )
+            continue
+
+        image = request.get("image") or request.get("input")
+        if not isinstance(image, str) or not image:
+            _write_json_line(
+                output_stream,
+                _worker_response(
+                    request,
+                    ok=False,
+                    error="Score requests require a non-empty 'image' path.",
+                ),
+            )
+            continue
+
+        try:
+            result = scorer.score(Path(image))
+        except Exception as exc:
+            _write_json_line(
+                output_stream,
+                _worker_response(request, ok=False, error=str(exc)),
+            )
+            continue
+
+        _write_json_line(
+            output_stream,
+            _worker_response(request, ok=True, payload=result),
+        )
+
+    return 0
+
+
 def score_image(
     image_path: Path,
     *,
@@ -155,7 +269,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Score a photo with a local aesthetic assessment model.",
     )
-    parser.add_argument("input", type=Path, help="Path to a photo or directory.")
+    parser.add_argument(
+        "input",
+        nargs="?",
+        type=Path,
+        help="Path to a photo or directory.",
+    )
     parser.add_argument(
         "--model",
         default=DEFAULT_MODEL_ID,
@@ -187,12 +306,36 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Write JSON output to this file instead of stdout.",
     )
+    parser.add_argument(
+        "--worker",
+        action="store_true",
+        help="Keep the model loaded and process JSON Lines requests from stdin.",
+    )
     return parser
 
 
 def main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
+
+    if args.worker:
+        try:
+            raise SystemExit(
+                run_worker(
+                    model_id=args.model,
+                    requested_device=args.device,
+                    local_files_only=args.local_files_only,
+                )
+            )
+        except Exception as exc:
+            print(
+                json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False),
+                file=sys.stderr,
+            )
+            raise SystemExit(1) from exc
+
+    if args.input is None:
+        parser.error("the following arguments are required: input")
 
     try:
         result = score_paths(
