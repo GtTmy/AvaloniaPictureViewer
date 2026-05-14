@@ -1,6 +1,6 @@
-# Photo aesthetic scoring PoC
+# Scoring Tool
 
-This is a local PoC for scoring the currently displayed photo in
+This is a local scoring tool for scoring the currently displayed photo in
 AvaloniaPictureViewer.
 
 The scorer uses `simple-aesthetics-predictor`, a CLIP-based aesthetic scoring
@@ -19,7 +19,7 @@ model weights are intentionally not committed to this repository.
 ## Usage
 
 ```bash
-uv run score-photo "../image/example.jpg"
+uv run score-photo "../../image/example.jpg"
 ```
 
 JSON output:
@@ -46,19 +46,19 @@ JSON output:
 Score every supported image under a directory:
 
 ```bash
-uv run score-photo --output generated/photo-scores.json "../image"
+uv run score-photo --output generated/photo-scores.json "../../image"
 ```
 
 Use the local cache only:
 
 ```bash
-uv run score-photo --local-files-only "../image/example.jpg"
+uv run score-photo --local-files-only "../../image/example.jpg"
 ```
 
 Force CPU:
 
 ```bash
-uv run score-photo --device cpu "../image/example.jpg"
+uv run score-photo --device cpu "../../image/example.jpg"
 ```
 
 ## Notes
