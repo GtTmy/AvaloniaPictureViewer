@@ -26,6 +26,7 @@ namespace AvaloniaPictureViewer
                     if ((e.Args == null) || (e.Args.Length < 1)) return;
                     vm.SetFilename(e.Args[0]);
                 };
+                desktop.Exit += (o, e) => vm.Dispose();
             }
 
             base.OnFrameworkInitializationCompleted();

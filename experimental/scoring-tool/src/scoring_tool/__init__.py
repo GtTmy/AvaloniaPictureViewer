@@ -3,9 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import TextIO
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 import torch
 from aesthetics_predictor import AestheticsPredictorV1
