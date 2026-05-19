@@ -44,9 +44,10 @@ Shutdown:
 
 - The checked-in model was exported from
   `shunk031/aesthetics-predictor-v1-vit-large-patch14` with `export_onnx.py`.
-- ONNX Runtime expects `aesthetic-score.onnx.data` next to
-  `aesthetic-score.onnx`; keep both files together.
+- `export_onnx.py` writes a single-file `models/aesthetic-score.onnx` so it can
+  also be used with the CoreML execution provider.
 - `--local-files-only` is accepted for CLI compatibility and is always treated
   as true.
-- `--device auto` and `--device cpu` use the CPU execution provider. Other
-  devices are rejected until a supported ONNX Runtime provider is configured.
+- `--device auto` and `--device cpu` use the CPU execution provider.
+- `--device coreml` enables ONNX Runtime's CoreML execution provider on macOS
+  with CPU fallback for unsupported graph parts.

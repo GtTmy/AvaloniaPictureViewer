@@ -76,7 +76,7 @@ internal sealed class CommandLineOptions
         writer.WriteLine("Options:");
         writer.WriteLine("  --model <path>          Path to an ONNX aesthetic scoring model.");
         writer.WriteLine("                          Defaults to models/aesthetic-score.onnx when present.");
-        writer.WriteLine("  --device <device>       Inference device: auto or cpu. Default: auto.");
+        writer.WriteLine("  --device <device>       Inference device: auto, cpu, or coreml. Default: auto.");
         writer.WriteLine("  --local-files-only      Accepted for Python CLI compatibility.");
         writer.WriteLine("  --pretty                Pretty-print JSON output.");
         writer.WriteLine("  --no-recursive          Scan only immediate children for directory input.");

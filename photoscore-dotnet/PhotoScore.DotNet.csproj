@@ -24,6 +24,5 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="models/aesthetic-score.onnx" CopyToOutputDirectory="PreserveNewest" Pack="false" Condition="Exists('models/aesthetic-score.onnx')" />
-    <None Include="models/aesthetic-score.onnx.data" CopyToOutputDirectory="PreserveNewest" Pack="false" Condition="Exists('models/aesthetic-score.onnx.data')" />
   </ItemGroup>
 </Project>

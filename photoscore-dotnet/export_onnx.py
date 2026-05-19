@@ -70,6 +70,7 @@ def main() -> None:
             "logits": {0: "batch"},
         },
         opset_version=18,
+        external_data=False,
     )
 
     print(output)

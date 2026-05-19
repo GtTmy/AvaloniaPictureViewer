@@ -3,6 +3,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Runtime.InteropServices;
 
 namespace PhotoScore.DotNet;
 
@@ -21,7 +22,7 @@ public sealed class AestheticScorer : IDisposable
         ModelPath = ResolveModelPath(modelPath);
         Device = ResolveDevice(requestedDevice);
 
-        var options = new SessionOptions();
+        var options = CreateSessionOptions(requestedDevice);
         _session = new InferenceSession(ModelPath, options);
         _inputName = _session.InputMetadata.ContainsKey("pixel_values")
             ? "pixel_values"
@@ -107,10 +108,28 @@ public sealed class AestheticScorer : IDisposable
         return requestedDevice switch
         {
             "auto" or "cpu" => "cpu",
+            "coreml" when RuntimeInformation.IsOSPlatform(OSPlatform.OSX) => "coreml",
+            "coreml" => throw new NotSupportedException("CoreML is only available on macOS. Use --device cpu."),
             "cuda" => throw new NotSupportedException("CUDA is not configured for this package. Use --device cpu."),
             "mps" => throw new NotSupportedException("MPS is not supported by ONNX Runtime on macOS. Use --device cpu."),
             _ => throw new ArgumentException($"Unsupported device: {requestedDevice}"),
         };
+    }
+
+    private static SessionOptions CreateSessionOptions(string requestedDevice)
+    {
+        var options = new SessionOptions
+        {
+            GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL,
+            ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
+        };
+
+        if (ResolveDevice(requestedDevice) == "coreml")
+        {
+            options.AppendExecutionProvider_CoreML(CoreMLFlags.COREML_FLAG_ENABLE_ON_SUBGRAPH);
+        }
+
+        return options;
     }
 
     private static DenseTensor<float> LoadTensor(string imagePath)
