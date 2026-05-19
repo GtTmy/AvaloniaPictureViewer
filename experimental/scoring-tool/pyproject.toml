@@ -8,6 +8,8 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "onnx>=1.21.0",
+    "onnxscript>=0.7.0",
     "pillow>=12.2.0",
     "simple-aesthetics-predictor>=0.1.2",
     "torch>=2.11.0",

@@ -327,6 +327,10 @@ ASALocalRun/
 # MSBuild Binary and Structured Log
 *.binlog
 
+# Local generated photo scoring models
+photoscore-dotnet/models/*.onnx
+photoscore-dotnet/models/*.onnx.data
+
 # NVidia Nsight GPU debugger configuration file
 *.nvuser
 

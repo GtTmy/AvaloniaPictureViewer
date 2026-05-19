@@ -71,7 +71,14 @@ public sealed class AestheticScorer : IDisposable
 
         if (string.IsNullOrWhiteSpace(configuredPath))
         {
-            throw new ArgumentException("ONNX model path is required. Pass --model or set PHOTOSCORE_ONNX_MODEL.");
+            var defaultPath = FindDefaultModelPath();
+            if (defaultPath is not null)
+            {
+                return defaultPath;
+            }
+
+            throw new ArgumentException(
+                "ONNX model path is required. Pass --model, set PHOTOSCORE_ONNX_MODEL, or place the model at photoscore-dotnet/models/aesthetic-score.onnx.");
         }
 
         var fullPath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(configuredPath));
@@ -81,6 +88,18 @@ public sealed class AestheticScorer : IDisposable
         }
 
         return fullPath;
+    }
+
+    private static string? FindDefaultModelPath()
+    {
+        var candidates = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "models", "aesthetic-score.onnx"),
+            Path.Combine(Directory.GetCurrentDirectory(), "models", "aesthetic-score.onnx"),
+            Path.Combine(Directory.GetCurrentDirectory(), "photoscore-dotnet", "models", "aesthetic-score.onnx"),
+        };
+
+        return candidates.FirstOrDefault(File.Exists);
     }
 
     private static string ResolveDevice(string requestedDevice)
