@@ -16,6 +16,10 @@
     <PackageReference Include="NaturalSort.Extension" Version="4.4.1" />
     <PackageReference Include="ReactiveProperty" Version="9.8.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="photoscore-dotnet/**/*.cs" />
+    <None Remove="photoscore-dotnet/**" />
+  </ItemGroup>
 <!--  <ItemGroup>
     <AvaloniaResource Remove="App.xaml" />
     <AvaloniaResource Remove="MainWindow.xaml" />
