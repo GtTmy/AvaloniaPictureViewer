@@ -20,6 +20,13 @@
     <Compile Remove="photoscore-dotnet/**/*.cs" />
     <None Remove="photoscore-dotnet/**" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="photoscore-dotnet/PhotoScore.DotNet.csproj" />
+    <None Include="photoscore-dotnet/models/aesthetic-score.onnx"
+          Link="models/aesthetic-score.onnx"
+          CopyToOutputDirectory="PreserveNewest"
+          Condition="Exists('photoscore-dotnet/models/aesthetic-score.onnx')" />
+  </ItemGroup>
 <!--  <ItemGroup>
     <AvaloniaResource Remove="App.xaml" />
     <AvaloniaResource Remove="MainWindow.xaml" />
