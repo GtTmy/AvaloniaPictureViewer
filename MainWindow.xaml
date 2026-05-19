@@ -15,7 +15,20 @@
     <KeyBinding Command="{Binding NextPageCommand}" Gesture="Right"/>
     <KeyBinding Command="{Binding PrevPageCommand}" Gesture="Left"/>
   </Window.KeyBindings>
-  <Grid>
-    <Image Source="{Binding PicturePath.Value, Converter={StaticResource PathToIBitMapConverter}}" Stretch="Uniform"/>
+  <Grid RowDefinitions="*,32">
+    <Image Grid.Row="0"
+           Source="{Binding PicturePath.Value, Converter={StaticResource PathToIBitMapConverter}}"
+           Stretch="Uniform"/>
+    <Border Grid.Row="1"
+            Background="#202225"
+            BorderBrush="#34373B"
+            BorderThickness="0,1,0,0">
+      <TextBlock Text="{Binding ScoreText}"
+                 Foreground="#E7E9EC"
+                 FontSize="13"
+                 VerticalAlignment="Center"
+                 Margin="12,0"
+                 TextTrimming="CharacterEllipsis"/>
+    </Border>
   </Grid>
 </Window>
