@@ -45,5 +45,14 @@ namespace AvaloniaPictureViewer
             CurrentIndex = (CurrentIndex > 0) ? CurrentIndex - 1 : Pictures.Count() - 1;
         }
 
+        public void Select(string picturePath)
+        {
+            var index = Pictures.IndexOf(picturePath);
+            if (index >= 0)
+            {
+                CurrentIndex = index;
+            }
+        }
+
     }
 }

@@ -1,93 +1,163 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
-using System.Reactive.Linq;
 using System.IO;
-using System.Reactive.Subjects;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AvaloniaPictureViewer
 {
-    public class ViewModel: ObservableObject, IDisposable
+    public class ViewModel : ObservableObject, IDisposable
     {
         private readonly AestheticScoreWorker _scoreWorker = new AestheticScoreWorker();
         private readonly Dictionary<string, double> _scoreCache = new Dictionary<string, double>();
         private int _scoreRequestSerial;
         private string _currentPicturePath;
+        private string _picturePath;
+        private string _selectedPicture;
+        private string _title = "Picture Workspace";
         private string _scoreText = "スコア: 未選択";
+        private string _scoreValue = "--";
+        private string _fileName = "画像を選択してください";
+        private string _folderName = "--";
+        private string _fileSizeText = "--";
+        private string _pageNum = "0 / 0";
+        private IReadOnlyList<string> _pictures = Array.Empty<string>();
 
-        public ReadOnlyReactiveProperty<string> Title { get; }
+        public ViewModel()
+        {
+            NextPageCommand.Subscribe(_ => Navigate(next: true));
+            PrevPageCommand.Subscribe(_ => Navigate(next: false));
+        }
+
+        public string Title
+        {
+            get => _title;
+            private set => SetProperty(ref _title, value);
+        }
+
+        public string PicturePath
+        {
+            get => _picturePath;
+            private set => SetProperty(ref _picturePath, value);
+        }
+
+        public string SelectedPicture
+        {
+            get => _selectedPicture;
+            set
+            {
+                if (SetProperty(ref _selectedPicture, value) &&
+                    PictureSelecter != null &&
+                    !string.IsNullOrWhiteSpace(value))
+                {
+                    PictureSelecter.Select(value);
+                    ShowCurrentPicture();
+                }
+            }
+        }
+
+        public IReadOnlyList<string> Pictures
+        {
+            get => _pictures;
+            private set => SetProperty(ref _pictures, value);
+        }
+
         public string ScoreText
         {
             get => _scoreText;
             private set => SetProperty(ref _scoreText, value);
         }
 
-        public void SetFilename(string filename)
+        public string ScoreValue
         {
-            if (System.IO.File.Exists(filename) &&
-                PictureSelecter.SupportedExtensions.Contains(System.IO.Path.GetExtension(filename).Substring(1)))
-            {
-                var fullpath = System.IO.Path.GetFullPath(filename);
-                PictureSelecter = new PictureSelecter(fullpath);
-                UpdatePic.OnNext(PictureSelecter.CurrentPicture);
-            }
+            get => _scoreValue;
+            private set => SetProperty(ref _scoreValue, value);
         }
 
-        public Subject<string> UpdatePic { get; } = new Subject<string>();
-        public ViewModel()
-        {   
-            //Title = "AvaloniaUIApps On " + System.Runtime.InteropServices.RuntimeInformation.OSDescription;
-
-            var buttonClickedSource = Observable.Merge(
-                NextPageCommand.Select(_ =>
-                {
-                    PictureSelecter.MoveNext();
-                    return PictureSelecter.CurrentPicture;
-                }),
-                PrevPageCommand.Select(_ =>
-                {
-                    PictureSelecter.MovePrev();
-                    return PictureSelecter.CurrentPicture;
-                }),
-                UpdatePic
-            ).Publish();
-
-            PicturePath = buttonClickedSource
-                .ToReadOnlyReactiveProperty();
-
-            buttonClickedSource.Subscribe(path => _ = UpdateScoreAsync(path));
-
-            PageNum =
-                buttonClickedSource
-                .Select(_ => PictureSelecter.PageNumForUser)
-                .ToReadOnlyReactiveProperty();
-            buttonClickedSource.Connect();
-
-            Title = buttonClickedSource
-                .Select(path => $"{PictureSelecter.PageNumForUser} - {path}")
-                .ToReadOnlyReactiveProperty();
+        public string FileName
+        {
+            get => _fileName;
+            private set => SetProperty(ref _fileName, value);
         }
 
-        PictureSelecter PictureSelecter { get; set; } = default;
+        public string FolderName
+        {
+            get => _folderName;
+            private set => SetProperty(ref _folderName, value);
+        }
 
-        public bool IsPictureSelected() => PictureSelecter != null;
+        public string FileSizeText
+        {
+            get => _fileSizeText;
+            private set => SetProperty(ref _fileSizeText, value);
+        }
+
+        public string PageNum
+        {
+            get => _pageNum;
+            private set => SetProperty(ref _pageNum, value);
+        }
 
         public ReactiveCommand NextPageCommand { get; } = new ReactiveCommand();
         public ReactiveCommand PrevPageCommand { get; } = new ReactiveCommand();
 
-        public ReadOnlyReactiveProperty<string> PicturePath { get; }
+        private PictureSelecter PictureSelecter { get; set; }
 
-        public ReadOnlyReactiveProperty<string> PageNum { get; }
+        public bool IsPictureSelected() => PictureSelecter != null;
+
+        public void SetFilename(string filename)
+        {
+            if (File.Exists(filename) &&
+                PictureSelecter.SupportedExtensions.Contains(Path.GetExtension(filename).Substring(1)))
+            {
+                var fullPath = Path.GetFullPath(filename);
+                PictureSelecter = new PictureSelecter(fullPath);
+                Pictures = PictureSelecter.Pictures.ToList();
+                SelectedPicture = PictureSelecter.CurrentPicture;
+            }
+        }
+
+        private void Navigate(bool next)
+        {
+            if (PictureSelecter == null)
+            {
+                return;
+            }
+
+            if (next)
+            {
+                PictureSelecter.MoveNext();
+            }
+            else
+            {
+                PictureSelecter.MovePrev();
+            }
+
+            SelectedPicture = PictureSelecter.CurrentPicture;
+        }
+
+        private void ShowCurrentPicture()
+        {
+            var path = PictureSelecter.CurrentPicture;
+            PicturePath = path;
+            PageNum = PictureSelecter.PageNumForUser;
+            FileName = Path.GetFileName(path);
+            FolderName = Path.GetFileName(PictureSelecter.DirName);
+            FileSizeText = FormatFileSize(new FileInfo(path).Length);
+            Title = $"{FileName} - Picture Workspace";
+            _ = UpdateScoreAsync(path);
+        }
 
         private async Task UpdateScoreAsync(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
                 SetScoreText("スコア: 未選択");
+                SetScoreValue("--");
                 return;
             }
 
@@ -98,10 +168,12 @@ namespace AvaloniaPictureViewer
             if (_scoreCache.TryGetValue(fullPath, out var cachedScore))
             {
                 SetScoreText(FormatScore(cachedScore));
+                SetScoreValue(cachedScore.ToString("0.00"));
                 return;
             }
 
             SetScoreText("スコア: 計算中...");
+            SetScoreValue("...");
 
             try
             {
@@ -111,6 +183,7 @@ namespace AvaloniaPictureViewer
                 if (requestSerial == _scoreRequestSerial && _currentPicturePath == fullPath)
                 {
                     SetScoreText(FormatScore(score));
+                    SetScoreValue(score.ToString("0.00"));
                 }
             }
             catch (Exception ex)
@@ -118,11 +191,22 @@ namespace AvaloniaPictureViewer
                 if (requestSerial == _scoreRequestSerial && _currentPicturePath == fullPath)
                 {
                     SetScoreText($"スコア: エラー ({GetShortError(ex)})");
+                    SetScoreValue("ERR");
                 }
             }
         }
 
         private static string FormatScore(double score) => $"スコア: {score:0.00}";
+
+        private static string FormatFileSize(long bytes)
+        {
+            if (bytes >= 1024 * 1024)
+            {
+                return $"{bytes / (1024d * 1024d):0.0} MB";
+            }
+
+            return $"{bytes / 1024d:0} KB";
+        }
 
         private void SetScoreText(string value)
         {
@@ -133,6 +217,18 @@ namespace AvaloniaPictureViewer
             else
             {
                 Dispatcher.UIThread.Post(() => ScoreText = value);
+            }
+        }
+
+        private void SetScoreValue(string value)
+        {
+            if (Dispatcher.UIThread.CheckAccess())
+            {
+                ScoreValue = value;
+            }
+            else
+            {
+                Dispatcher.UIThread.Post(() => ScoreValue = value);
             }
         }
 
