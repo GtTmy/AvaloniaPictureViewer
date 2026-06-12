@@ -1,7 +1,10 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AvaloniaPictureViewer
@@ -47,6 +50,38 @@ namespace AvaloniaPictureViewer
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+        private async void CopyCheckedFiles(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            var vm = DataContext as ViewModel;
+            var paths = vm.GetCheckedPaths();
+            if (!paths.Any())
+            {
+                vm.SetClipboardResult(0, "画像が選択されていません");
+                return;
+            }
+
+            try
+            {
+                var files = new List<IStorageItem>();
+                foreach (var path in paths)
+                {
+                    var file = await StorageProvider.TryGetFileFromPathAsync(path);
+                    if (file != null)
+                    {
+                        files.Add(file);
+                    }
+                }
+
+                await Clipboard.SetFilesAsync(files);
+                await Clipboard.FlushAsync();
+                vm.SetClipboardResult(files.Count);
+            }
+            catch (Exception ex)
+            {
+                vm.SetClipboardResult(0, ex.Message);
+            }
         }
 
     }

@@ -17,7 +17,7 @@ namespace AvaloniaPictureViewer
         private int _scoreRequestSerial;
         private string _currentPicturePath;
         private string _picturePath;
-        private string _selectedPicture;
+        private PictureItem _selectedPicture;
         private string _title = "Picture Workspace";
         private string _scoreText = "スコア: 未選択";
         private string _scoreValue = "--";
@@ -25,7 +25,9 @@ namespace AvaloniaPictureViewer
         private string _folderName = "--";
         private string _fileSizeText = "--";
         private string _pageNum = "0 / 0";
-        private IReadOnlyList<string> _pictures = Array.Empty<string>();
+        private string _clipboardStatus = "チェックした画像をFinderへコピーできます";
+        private IReadOnlyList<PictureItem> _pictures = Array.Empty<PictureItem>();
+        private int _checkedCount;
 
         public ViewModel()
         {
@@ -45,25 +47,39 @@ namespace AvaloniaPictureViewer
             private set => SetProperty(ref _picturePath, value);
         }
 
-        public string SelectedPicture
+        public PictureItem SelectedPicture
         {
             get => _selectedPicture;
             set
             {
                 if (SetProperty(ref _selectedPicture, value) &&
                     PictureSelecter != null &&
-                    !string.IsNullOrWhiteSpace(value))
+                    value != null)
                 {
-                    PictureSelecter.Select(value);
+                    PictureSelecter.Select(value.Path);
                     ShowCurrentPicture();
                 }
             }
         }
 
-        public IReadOnlyList<string> Pictures
+        public IReadOnlyList<PictureItem> Pictures
         {
             get => _pictures;
             private set => SetProperty(ref _pictures, value);
+        }
+
+        public int CheckedCount
+        {
+            get => _checkedCount;
+            private set => SetProperty(ref _checkedCount, value);
+        }
+
+        public string CheckedCountText => $"{CheckedCount} selected";
+
+        public string ClipboardStatus
+        {
+            get => _clipboardStatus;
+            private set => SetProperty(ref _clipboardStatus, value);
         }
 
         public string ScoreText
@@ -116,9 +132,23 @@ namespace AvaloniaPictureViewer
             {
                 var fullPath = Path.GetFullPath(filename);
                 PictureSelecter = new PictureSelecter(fullPath);
-                Pictures = PictureSelecter.Pictures.ToList();
-                SelectedPicture = PictureSelecter.CurrentPicture;
+                Pictures = PictureSelecter.Pictures
+                    .Select(path => new PictureItem(path, UpdateCheckedCount))
+                    .ToList();
+                SelectedPicture = FindPictureItem(PictureSelecter.CurrentPicture);
             }
+        }
+
+        public IReadOnlyList<string> GetCheckedPaths()
+        {
+            return Pictures.Where(picture => picture.IsChecked).Select(picture => picture.Path).ToList();
+        }
+
+        public void SetClipboardResult(int copiedCount, string error = null)
+        {
+            ClipboardStatus = error == null
+                ? $"{copiedCount}枚の画像をFinderへコピーしました"
+                : $"コピーできませんでした: {error}";
         }
 
         private void Navigate(bool next)
@@ -137,7 +167,7 @@ namespace AvaloniaPictureViewer
                 PictureSelecter.MovePrev();
             }
 
-            SelectedPicture = PictureSelecter.CurrentPicture;
+            SelectedPicture = FindPictureItem(PictureSelecter.CurrentPicture);
         }
 
         private void ShowCurrentPicture()
@@ -150,6 +180,20 @@ namespace AvaloniaPictureViewer
             FileSizeText = FormatFileSize(new FileInfo(path).Length);
             Title = $"{FileName} - Picture Workspace";
             _ = UpdateScoreAsync(path);
+        }
+
+        private PictureItem FindPictureItem(string path)
+        {
+            return Pictures.First(picture => picture.Path == path);
+        }
+
+        private void UpdateCheckedCount()
+        {
+            CheckedCount = Pictures.Count(picture => picture.IsChecked);
+            OnPropertyChanged(nameof(CheckedCountText));
+            ClipboardStatus = CheckedCount == 0
+                ? "チェックした画像をFinderへコピーできます"
+                : $"{CheckedCount}枚の画像を選択中";
         }
 
         private async Task UpdateScoreAsync(string path)

@@ -28,7 +28,7 @@
             BorderBrush="#252B37"
             BorderThickness="0,0,1,0"
             Padding="14">
-      <Grid RowDefinitions="Auto,Auto,*">
+      <Grid RowDefinitions="Auto,Auto,*,Auto">
         <StackPanel Spacing="3" Margin="4,4,4,16">
           <TextBlock Text="LIBRARY" Foreground="#7C8CFF" FontWeight="SemiBold"
                      FontSize="11" LetterSpacing="1.4"/>
@@ -53,11 +53,18 @@
               <Border CornerRadius="7" Background="#202632" Padding="5" Margin="0,0,0,8">
                 <Grid RowDefinitions="92,Auto">
                   <Border Background="#0B0E13" CornerRadius="4" ClipToBounds="True">
-                    <Image Source="{Binding ., Converter={StaticResource PathToIBitMapConverter}, ConverterParameter=180}"
-                           Stretch="UniformToFill"/>
+                    <Grid>
+                      <Image Source="{Binding Path, Converter={StaticResource PathToIBitMapConverter}, ConverterParameter=180}"
+                             Stretch="UniformToFill"/>
+                      <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Margin="7"
+                                Background="#151A23"/>
+                    </Grid>
                   </Border>
                   <TextBlock Grid.Row="1"
-                             Text="{Binding ., Converter={StaticResource PathToFilenameConverter}}"
+                             Text="{Binding FileName}"
                              Foreground="#B8C0CE"
                              FontSize="11" Margin="3,7,3,2" TextTrimming="CharacterEllipsis"/>
                 </Grid>
@@ -65,6 +72,23 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+
+        <Border Grid.Row="3" Background="#1C222D" CornerRadius="9" Padding="12" Margin="0,12,0,0">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="CHECKED" Foreground="#697386" FontSize="9" LetterSpacing="1"/>
+              <TextBlock Text="{Binding CheckedCountText}" Foreground="#E1E5ED"
+                         FontSize="12" FontWeight="SemiBold"/>
+            </StackPanel>
+            <Button Grid.Column="1" Content="Copy"
+                    Click="CopyCheckedFiles"
+                    Background="#7C8CFF"
+                    Foreground="#0D1016"
+                    FontWeight="SemiBold"
+                    CornerRadius="6"
+                    Padding="13,7"/>
+          </Grid>
+        </Border>
       </Grid>
     </Border>
 
@@ -83,8 +107,17 @@
 
       <Border Grid.Row="1" Margin="24,0" Background="#080A0E" BorderBrush="#202632"
               BorderThickness="1" CornerRadius="12" ClipToBounds="True">
-        <Image Source="{Binding PicturePath, Converter={StaticResource PathToIBitMapConverter}}"
-               Stretch="Uniform" Margin="12"/>
+        <Grid>
+          <Image Source="{Binding PicturePath, Converter={StaticResource PathToIBitMapConverter}}"
+                 Stretch="Uniform" Margin="12"/>
+          <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                  Background="#DD141821" CornerRadius="8" Margin="18" Padding="12,8">
+            <CheckBox IsChecked="{Binding SelectedPicture.IsChecked, Mode=TwoWay}"
+                      Content="この画像をチェック"
+                      Foreground="#F2F4F8"
+                      FontWeight="SemiBold"/>
+          </Border>
+        </Grid>
       </Border>
 
       <Grid Grid.Row="2" ColumnDefinitions="*,Auto,*" Margin="24,16,24,20">
@@ -101,7 +134,8 @@
 
     <Border Grid.Column="2" Background="#141821" BorderBrush="#252B37"
             BorderThickness="1,0,0,0" Padding="20">
-      <StackPanel Spacing="18">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="18">
         <StackPanel Spacing="3" Margin="2,4,2,0">
           <TextBlock Text="DETAILS" Foreground="#7C8CFF" FontWeight="SemiBold"
                      FontSize="11" LetterSpacing="1.4"/>
@@ -143,7 +177,30 @@
             </Grid>
           </Border>
         </StackPanel>
-      </StackPanel>
+
+        <Border Background="#1C222D" BorderBrush="#293241" BorderThickness="1"
+                CornerRadius="10" Padding="14">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="2">
+                <TextBlock Text="FINDER COPY" Foreground="#8E99AA" FontSize="10" LetterSpacing="1"/>
+                <TextBlock Text="{Binding CheckedCountText}" Foreground="#E5E8EF"
+                           FontWeight="SemiBold" FontSize="14"/>
+              </StackPanel>
+              <Button Grid.Column="1" Content="Copy files"
+                      Click="CopyCheckedFiles"
+                      Background="#7C8CFF"
+                      Foreground="#0D1016"
+                      FontWeight="SemiBold"
+                      CornerRadius="7"
+                      Padding="14,8"/>
+            </Grid>
+            <TextBlock Text="{Binding ClipboardStatus}" Foreground="#8E99AA"
+                       FontSize="11" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+        </StackPanel>
+      </ScrollViewer>
     </Border>
   </Grid>
 </Window>
