@@ -208,27 +208,6 @@
           </Border>
         </StackPanel>
 
-        <Border Background="#1C222D" BorderBrush="#293241" BorderThickness="1"
-                CornerRadius="10" Padding="14">
-          <StackPanel Spacing="10">
-            <Grid ColumnDefinitions="*,Auto">
-              <StackPanel Spacing="2">
-                <TextBlock Text="FINDER COPY" Foreground="#8E99AA" FontSize="10" LetterSpacing="1"/>
-                <TextBlock Text="{Binding CheckedCountText}" Foreground="#E5E8EF"
-                           FontWeight="SemiBold" FontSize="14"/>
-              </StackPanel>
-              <Button Grid.Column="1" Content="Copy files"
-                      Click="CopyCheckedFiles"
-                      Background="#7C8CFF"
-                      Foreground="#0D1016"
-                      FontWeight="SemiBold"
-                      CornerRadius="7"
-                      Padding="14,8"/>
-            </Grid>
-            <TextBlock Text="{Binding ClipboardStatus}" Foreground="#8E99AA"
-                       FontSize="11" TextWrapping="Wrap"/>
-          </StackPanel>
-        </Border>
         </StackPanel>
       </ScrollViewer>
     </Border>
