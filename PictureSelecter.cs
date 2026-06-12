@@ -54,5 +54,16 @@ namespace AvaloniaPictureViewer
             }
         }
 
+        public void SetOrder(IEnumerable<string> picturePaths, string currentPicture)
+        {
+            Pictures.Clear();
+            foreach (var path in picturePaths)
+            {
+                Pictures.Add(path);
+            }
+
+            Select(currentPicture);
+        }
+
     }
 }

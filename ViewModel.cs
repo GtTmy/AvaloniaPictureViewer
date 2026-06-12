@@ -1,5 +1,6 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using NaturalSort.Extension;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -26,8 +27,12 @@ namespace AvaloniaPictureViewer
         private string _fileSizeText = "--";
         private string _pageNum = "0 / 0";
         private string _clipboardStatus = "チェックした画像をFinderへコピーできます";
+        private string _selectedSortField = "ファイル名";
+        private string _selectedSortDirection = "昇順";
+        private string _sortStatus = "ファイル名の昇順";
         private IReadOnlyList<PictureItem> _pictures = Array.Empty<PictureItem>();
         private int _checkedCount;
+        private int _sortRequestSerial;
 
         public ViewModel()
         {
@@ -80,6 +85,39 @@ namespace AvaloniaPictureViewer
         {
             get => _clipboardStatus;
             private set => SetProperty(ref _clipboardStatus, value);
+        }
+
+        public IReadOnlyList<string> SortFields { get; } = new[] { "ファイル名", "ファイル最終変更日", "スコア" };
+        public IReadOnlyList<string> SortDirections { get; } = new[] { "昇順", "降順" };
+
+        public string SelectedSortField
+        {
+            get => _selectedSortField;
+            set
+            {
+                if (SetProperty(ref _selectedSortField, value))
+                {
+                    _ = ApplySortAsync();
+                }
+            }
+        }
+
+        public string SelectedSortDirection
+        {
+            get => _selectedSortDirection;
+            set
+            {
+                if (SetProperty(ref _selectedSortDirection, value))
+                {
+                    _ = ApplySortAsync();
+                }
+            }
+        }
+
+        public string SortStatus
+        {
+            get => _sortStatus;
+            private set => SetProperty(ref _sortStatus, value);
         }
 
         public string ScoreText
@@ -196,6 +234,84 @@ namespace AvaloniaPictureViewer
                 : $"{CheckedCount}枚の画像を選択中";
         }
 
+        private async Task ApplySortAsync()
+        {
+            if (PictureSelecter == null || Pictures.Count == 0)
+            {
+                return;
+            }
+
+            var requestSerial = Interlocked.Increment(ref _sortRequestSerial);
+            var sortField = SelectedSortField;
+            var descending = SelectedSortDirection == "降順";
+
+            if (sortField == "スコア")
+            {
+                var pendingPictures = Pictures.Where(picture => !picture.Score.HasValue).ToList();
+                for (var index = 0; index < pendingPictures.Count; index++)
+                {
+                    if (requestSerial != _sortRequestSerial)
+                    {
+                        return;
+                    }
+
+                    SortStatus = $"スコアを計算中 {index + 1} / {pendingPictures.Count}";
+                    await GetScoreAsync(pendingPictures[index]);
+                }
+            }
+
+            if (requestSerial != _sortRequestSerial)
+            {
+                return;
+            }
+
+            var currentPicture = SelectedPicture;
+            IEnumerable<PictureItem> sortedPictures = sortField switch
+            {
+                "ファイル最終変更日" => descending
+                    ? Pictures.OrderByDescending(picture => picture.LastModified)
+                    : Pictures.OrderBy(picture => picture.LastModified),
+                "スコア" => descending
+                    ? Pictures.OrderByDescending(picture => picture.Score ?? double.MinValue)
+                    : Pictures.OrderBy(picture => picture.Score ?? double.MaxValue),
+                _ => descending
+                    ? Pictures.OrderByDescending(picture => picture.FileName, StringComparer.OrdinalIgnoreCase.WithNaturalSort())
+                    : Pictures.OrderBy(picture => picture.FileName, StringComparer.OrdinalIgnoreCase.WithNaturalSort()),
+            };
+
+            Pictures = sortedPictures.ToList();
+            PictureSelecter.SetOrder(Pictures.Select(picture => picture.Path), currentPicture.Path);
+            SelectedPicture = currentPicture;
+            PageNum = PictureSelecter.PageNumForUser;
+            SortStatus = $"{sortField}の{SelectedSortDirection}";
+        }
+
+        private async Task<double?> GetScoreAsync(PictureItem picture)
+        {
+            if (picture.Score.HasValue)
+            {
+                return picture.Score;
+            }
+
+            if (_scoreCache.TryGetValue(picture.Path, out var cachedScore))
+            {
+                picture.Score = cachedScore;
+                return cachedScore;
+            }
+
+            try
+            {
+                var score = await _scoreWorker.ScoreAsync(picture.Path, picture.Path);
+                _scoreCache[picture.Path] = score;
+                picture.Score = score;
+                return score;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private async Task UpdateScoreAsync(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -211,6 +327,7 @@ namespace AvaloniaPictureViewer
 
             if (_scoreCache.TryGetValue(fullPath, out var cachedScore))
             {
+                FindPictureItem(fullPath).Score = cachedScore;
                 SetScoreText(FormatScore(cachedScore));
                 SetScoreValue(cachedScore.ToString("0.00"));
                 return;
@@ -221,8 +338,9 @@ namespace AvaloniaPictureViewer
 
             try
             {
-                var score = await _scoreWorker.ScoreAsync(fullPath, requestSerial.ToString()).ConfigureAwait(false);
+                var score = await _scoreWorker.ScoreAsync(fullPath, requestSerial.ToString());
                 _scoreCache[fullPath] = score;
+                FindPictureItem(fullPath).Score = score;
 
                 if (requestSerial == _scoreRequestSerial && _currentPicturePath == fullPath)
                 {
