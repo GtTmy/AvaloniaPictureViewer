@@ -331,6 +331,10 @@ ASALocalRun/
 photoscore-dotnet/models/*.onnx
 photoscore-dotnet/models/*.onnx.data
 
+# Local macOS scoring sidecar builds
+packaging/macos/scoring-tool-nuitka/
+packaging/macos/*.csv
+
 # NVidia Nsight GPU debugger configuration file
 *.nvuser
 
